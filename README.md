@@ -19,3 +19,8 @@ The JS source file is found in `main.js`.
 This hopefully proves proper code organisation doesn't trump file size: the included modulr JS script is just above 3kb _before minification_.
 
 The ~~[src code](http://github.com/tobie/helvetictoc)~~ [modified source code](https://github.com/bign8/helvetictoc) is available on github.
+
+## Screen Shots!
+![screen 1](screenshots/screenshot_1.png)
+![screen 2](screenshots/screenshot_2.png)
+![screen 3](screenshots/screenshot_3.png)
