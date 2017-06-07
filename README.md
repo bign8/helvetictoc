@@ -2,6 +2,7 @@
 ===============
 A time-full tribute to a timeless typeface.
 -------------------------------------------
+[![Build Status](https://travis-ci.org/bign8/helvetictoc.svg?branch=master)](https://travis-ci.org/bign8/helvetictoc)
 
 helvetictoc is [my](https://github.com/tobie) entry to the [10K apart contest](http://10k.aneventapart.com/).
 
@@ -21,9 +22,9 @@ This hopefully proves proper code organisation doesn't trump file size: the incl
 The ~~[src code](http://github.com/tobie/helvetictoc)~~ [modified source code](https://github.com/bign8/helvetictoc) is available on github.
 
 ## Screen Shots!
-![screen 1](screenshots/screenshot_1.png)
-![screen 2](screenshots/screenshot_2.png)
-![screen 3](screenshots/screenshot_3.png)
+![screen 1](screenshots/screenshot_1.png)  
+![screen 2](screenshots/screenshot_2.png)  
+![screen 3](screenshots/screenshot_3.png)  
 
 
 ## Built on Docker
