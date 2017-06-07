@@ -28,4 +28,4 @@ The ~~[src code](http://github.com/tobie/helvetictoc)~~ [modified source code](h
 
 ## Built on Docker
 - Run `docker run --rm -it -p 8043:8043 bign8/helvetictoc`
-- Build `docker build -t bign8/helvetictoc`
+- Build `docker build -t bign8/helvetictoc .`
