@@ -6,7 +6,7 @@ install:
   - gem install html-proofer
 
 script:
-  - htmlproofer --check-external-hash --check-html --check-img-http --check-opengraph --enforce-https --timeframe 6w static # --check-favicon
+  - htmlproofer --check-external-hash --check-html --check-favicon --check-img-http --check-opengraph --enforce-https --timeframe 6w static
 
 cache:
   directories:
