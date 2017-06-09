@@ -28,10 +28,6 @@ var fuzzyTime = {
 			return h >= 18 || h < 6;
 		}
 
-		function isDay() {
-			return !isNight();
-		}
-
 		function getFuzzyFactor() {
 			var ff = m % 5;
 			switch (ff) {
@@ -68,7 +64,6 @@ var fuzzyTime = {
 			getMinutes: getMinutes,
 			getFuzzyFactor: getFuzzyFactor,
 			isNight: isNight,
-			isDay: isDay,
 			isEqual: isEqual,
 			toString: toString,
 			to24HourString: to24HourString
@@ -145,10 +140,6 @@ var clock = {
 
 		function isNight() {
 			return time.isNight();
-		}
-
-		function isDay() {
-			return time.isDay();
 		}
 
 		function setTime(t) {
