@@ -33,8 +33,7 @@ FuzzyTime.prototype.getHours = function() {
 };
 
 FuzzyTime.prototype.getMinutes = function() {
-	var r = Math.round(this.m / 5) * 5
-	return r === 60 ? 0 : r;
+	return (Math.round(this.m / 5) * 5) % 60;
 };
 
 FuzzyTime.prototype.toString = (function() {
