@@ -1,5 +1,5 @@
-function FuzzyTime() {
-	var d = new Date();
+function FuzzyTime(d) {
+	d = d || new Date();
 	this.h = d.getHours();
 	this.m = d.getMinutes();
 }
@@ -8,22 +8,13 @@ FuzzyTime.prototype.isNight = function() {
 	return this.h >= 18 || this.h < 6;
 };
 
-FuzzyTime.prototype.toString = function() {
-	return pad(this.h) + ':' + pad(this.m); // TODO: full string
-};
-
-function pad(i) {
-	return (i > 9 ? '' : '0') + i;
-}
-
 FuzzyTime.prototype.isStale = function() {
 	var now = new Date();
 	return now.getMinutes() != this.m || now.getHours() != this.h;
 };
 
 FuzzyTime.prototype.getFuzzyFactor = function() {
-	var ff = this.m % 5;
-	switch (ff) {
+	switch (this.m % 5) {
 		case 1:
 		case 2:
 			return 1;
@@ -37,13 +28,8 @@ FuzzyTime.prototype.getFuzzyFactor = function() {
 
 FuzzyTime.prototype.getHours = function() {
 	var r = this.h;
-	if (this.m > 32) {
-		r = r === 23 ? 0 : r + 1;
-	}
-	if (r > 11) {
-		r = r - 12;
-	}
-	return r;
+	if (this.m > 32) r++;
+	return r % 12;
 };
 
 FuzzyTime.prototype.getMinutes = function() {
@@ -77,122 +63,70 @@ var timeInWords = {
 	SPECIAL_CASES: {
 		'23:58': 'It’s ’round about<br>midnight.',
 		'23:59': 'It’s ’round about<br>midnight.',
-		'00:00': 'It’s<br> midnight.',
-		'00:01': 'It’s ’round about<br>midnight.',
-		'00:02': 'It’s ’round about<br>midnight.',
-		'12:00': 'It’s<br> noon.'
+		'0:0': 'It’s<br>midnight.',
+		'0:1': 'It’s ’round about<br>midnight.',
+		'0:2': 'It’s ’round about<br>midnight.',
+		'12:0': 'It’s<br>noon.'
 	},
-
-	onTheHourTemplate: "It’s {{p}}<br>{{h}} o’clock.",
-	template: "It’s {{p}}<br>{{m}}<br>{{h}}."
 };
 
-var clock = {
-	timeInWords: timeInWords,
+function stringify(time) {
+	var sc = timeInWords.SPECIAL_CASES[time.h + ':' + time.m];
+	if (sc) return sc;
 
-	createClock: function (doc) {
-
-		var time, fontSize, content, screens = [doc.createElement('div'), doc.createElement('div')], clientHeight;
-
-		refresh();
-
-		doc.body.appendChild(screens[0]);
-		doc.body.appendChild(screens[1]);
-
-		function getPreposition() {
-			var ff = time.getFuzzyFactor(),
-				p = pickOne(timeInWords.PREPOSITIONS[ff]);
-			return ff === 0 ? pickOne(['', p]) : p;
+	var template = time.getMinutes() ? "It’s {{p}}<br>{{m}}<br>{{h}}." : "It’s {{p}}<br>{{h}} o’clock.";
+	return template.replace(/\{\{\s*(\w+)\s*\}\}/g, function (m, m1) {
+		switch (m1) {
+			case 'p':
+				var pre = timeInWords.PREPOSITIONS[time.getFuzzyFactor()];
+				return pre[Math.floor(Math.random() * pre.length)];
+			case 'm':
+				return timeInWords.MINUTES[time.getMinutes()];
+			case 'h':
+				return timeInWords.HOURS[time.getHours()];
 		}
+	});
+}
 
-		function pickOne(elements) {
-			var index = Math.floor(Math.random() * elements.length);
-			return elements[index];
-		}
+var clock = (function (doc) {
+	var redraw, time, size, content, height, screens = [doc.createElement('div'), doc.createElement('div')];
+	doc.body.appendChild(screens[0]);
+	doc.body.appendChild(screens[1]);
 
-		function refreshContent() {
-			time = new FuzzyTime();//fuzzyTime.createFuzzyTime();
-			var sc = timeInWords.SPECIAL_CASES[time.toString()];
-
-			if (sc) {
-				return content = sc;
-			}
-
-			var template = timeInWords[time.getMinutes() ? 'template' : 'onTheHourTemplate'];
-
-			content = template.replace(/\{\{\s*(\w+)\s*\}\}/g, function (m, m1) {
-				switch (m1) {
-					case 'p':
-						return getPreposition();
-					case 'm':
-						return timeInWords.MINUTES[time.getMinutes()];
-					case 'h':
-						return timeInWords.HOURS[time.getHours()];
-				}
-			});
-		}
-
-		function draw() {
-			var s0 = screens[0],
-				s1 = screens[1];
-			s0.style.zIndex = 0;
-			s1.style.zIndex = 1;
-			s0.style.fontSize = fontSize;
-			s1.style.fontSize = fontSize;
-			s0.innerHTML = content;
-			s0.className = 'screen';
-			s1.className = 'screen previous';
-			screens.reverse();
-			doc.body.className = time.isNight() ? 'night' : 'day';
-		}
-
-		function setFontSize() {
-			fontSize = Math.round(document.documentElement.clientHeight / 8.5) + 'px';
-		}
-
-		function refreshSize() {
-			clientHeight = document.documentElement.clientHeight;
-			fontSize = Math.round(clientHeight / 8.5) + 'px';
-		}
-
-		function wasResized() {
-			return clientHeight !== document.documentElement.clientHeight;
-		}
-
-		function redraw() {
-			var redraw = false;
-
-			if (time.isStale()) {
-				refreshContent();
-				redraw = true;
-			}
-
-			if (wasResized()) {
-				refreshSize();
-				redraw = true;
-			}
-
-			console.log("redraw", redraw);
-			if (redraw) {
-				draw();
-			}
-		}
-
-		function refresh(t) {
-			refreshContent(t);
-			refreshSize();
-		}
-
-		return {
-			refresh: refresh,
-			draw: draw,
-			redraw: redraw
-		}
+	function refreshContent() {
+		time = new FuzzyTime();
+		content = stringify(time);
+		redraw = true;
 	}
-};
+
+	function refreshSize() {
+		height = doc.documentElement.clientHeight;
+		size = Math.round(height / 8.5) + 'px';
+		redraw = true;
+	}
+
+	function draw() {
+		var s0 = screens[0], s1 = screens[1];
+		s0.style.zIndex = 0;
+		s1.style.zIndex = 1;
+		s0.style.fontSize = size;
+		s1.style.fontSize = size;
+		s0.innerHTML = content;
+		s0.className = 'screen';
+		s1.className = 'screen previous';
+		screens.reverse();
+		doc.body.className = time.isNight() ? 'night' : 'day';
+		redraw = false;
+	}
+
+	refreshContent(), refreshSize(), draw();
+	return function() {
+		if (time.isStale()) refreshContent();
+		if (height !== doc.documentElement.clientHeight) refreshSize();
+		if (redraw) draw();
+	};
+})(document);
 
 // program
-var c = clock.createClock(document);
-c.draw();
-setInterval(c.redraw, 1000);
-window.onresize = c.redraw;
+window.setInterval(clock, 1000);
+window.onresize = clock; // TODO: request-animation frame or debounce
