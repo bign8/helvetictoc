@@ -112,3 +112,16 @@ var clock = (function (doc) {
 // program
 window.setInterval(clock, 1000);
 window.onresize = clock; // TODO: request-animation frame or debounce
+
+// Load favicon from svg for non-firefox browsers
+// Thanks: https://stackoverflow.com/a/34440779/3220865
+!function(d, s) {
+	var img = d.createElement('img'), can = d.createElement('canvas'), lnk = d.createElement("link");
+	img.onload = function() {
+		can.width = s, can.height = s, lnk.rel = "icon";
+		can.getContext('2d').drawImage(img, 0, 0, s, s);
+		lnk.href = can.toDataURL();
+		d.head.appendChild(lnk);
+	};
+	img.src = d.querySelector('link[rel="icon"]').href;
+}(document, 32);
