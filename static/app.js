@@ -1,5 +1,5 @@
 function FuzzyTime(d) {
-	d = d || new Date();
+	d = d || new Date(); // For testing
 	this.h = d.getHours();
 	this.m = d.getMinutes();
 }
@@ -37,65 +37,58 @@ FuzzyTime.prototype.getMinutes = function() {
 	return r === 60 ? 0 : r;
 };
 
-var timeInWords = {
-	HOURS: ['twelve', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven'],
+FuzzyTime.prototype.toString = (function() {
+	var hours = ['twelve', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven'],
+		mins = {
+			'5': 'five past',
+			'10': 'ten past',
+			'15': 'quarter past',
+			'20': 'twenty past',
+			'25': 'twenty-five past',
+			'30': 'half past',
+			'35': 'twenty-five to',
+			'40': 'twenty to',
+			'45': 'quarter to',
+			'50': 'ten to',
+			'55': 'five to'
+		}, prepositions = {
+			'-1': ['almost', 'nearly'],
+			'0': ['exactly', 'precisely', 'now', ''],
+			'1': ['about', 'around', 'just after', 'right after', 'shortly after']
+		}, special = {
+			'23:58': 'It’s ’round about<br>midnight.',
+			'23:59': 'It’s ’round about<br>midnight.',
+			'0:0': 'It’s<br>midnight.',
+			'0:1': 'It’s ’round about<br>midnight.',
+			'0:2': 'It’s ’round about<br>midnight.',
+			'12:0': 'It’s<br>noon.'
+		};
+	return function() {
+		var sc = special[this.h + ':' + this.m];
+		if (sc) return sc;
 
-	MINUTES: {
-		'5': 'five past',
-		'10': 'ten past',
-		'15': 'quarter past',
-		'20': 'twenty past',
-		'25': 'twenty-five past',
-		'30': 'half past',
-		'35': 'twenty-five to',
-		'40': 'twenty to',
-		'45': 'quarter to',
-		'50': 'ten to',
-		'55': 'five to'
-	},
-
-	PREPOSITIONS: {
-		'-1': ['almost', 'nearly'],
-		'0': ['exactly', 'precisely', 'now', ''],
-		'1': ['about', 'around', 'just after', 'right after', 'shortly after']
-	},
-
-	SPECIAL_CASES: {
-		'23:58': 'It’s ’round about<br>midnight.',
-		'23:59': 'It’s ’round about<br>midnight.',
-		'0:0': 'It’s<br>midnight.',
-		'0:1': 'It’s ’round about<br>midnight.',
-		'0:2': 'It’s ’round about<br>midnight.',
-		'12:0': 'It’s<br>noon.'
-	},
-};
-
-function stringify(time) {
-	var sc = timeInWords.SPECIAL_CASES[time.h + ':' + time.m];
-	if (sc) return sc;
-
-	var template = time.getMinutes() ? "It’s {{p}}<br>{{m}}<br>{{h}}." : "It’s {{p}}<br>{{h}} o’clock.";
-	return template.replace(/\{\{\s*(\w+)\s*\}\}/g, function (m, m1) {
-		switch (m1) {
-			case 'p':
-				var pre = timeInWords.PREPOSITIONS[time.getFuzzyFactor()];
-				return pre[Math.floor(Math.random() * pre.length)];
-			case 'm':
-				return timeInWords.MINUTES[time.getMinutes()];
-			case 'h':
-				return timeInWords.HOURS[time.getHours()];
-		}
-	});
-}
+		var that = this, template = this.getMinutes() ? "It’s {{p}}<br>{{m}}<br>{{h}}." : "It’s {{p}}<br>{{h}} o’clock.";
+		return template.replace(/\{\{\s*(\w+)\s*\}\}/g, function (m, m1) {
+			switch (m1) {
+				case 'p':
+					var pre = prepositions[that.getFuzzyFactor()];
+					return pre[Math.floor(Math.random() * pre.length)];
+				case 'm':
+					return mins[that.getMinutes()];
+				case 'h':
+					return hours[that.getHours()];
+			}
+		});
+	};
+})();
 
 var clock = (function (doc) {
-	var redraw, time, size, content, height, screens = [doc.createElement('div'), doc.createElement('div')];
+	var size, time, height, redraw, screens = [doc.createElement('div'), doc.createElement('div')];
 	doc.body.appendChild(screens[0]);
 	doc.body.appendChild(screens[1]);
 
 	function refreshContent() {
 		time = new FuzzyTime();
-		content = stringify(time);
 		redraw = true;
 	}
 
@@ -111,7 +104,7 @@ var clock = (function (doc) {
 		s1.style.zIndex = 1;
 		s0.style.fontSize = size;
 		s1.style.fontSize = size;
-		s0.innerHTML = content;
+		s0.innerHTML = time.toString();
 		s0.className = 'screen';
 		s1.className = 'screen previous';
 		screens.reverse();
