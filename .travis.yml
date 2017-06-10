@@ -17,6 +17,7 @@ env:
     - NOKOGIRI_USE_SYSTEM_LIBRARIES=true # speeds up installation of html-proofer
 
 deploy: # https://docs.travis-ci.com/user/deployment/pages/
+  fqdn: time.bign8.info
   provider: pages
   local_dir: static
   skip_cleanup: true
