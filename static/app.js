@@ -1,7 +1,6 @@
 var fuzzyTime = {
-	createFuzzyTime: function (d) {
-		d = d || new Date();
-		var h = d.getHours(), m = d.getMinutes(), p = 'am';
+	createFuzzyTime: function () {
+		var d = new Date(), h = d.getHours(), m = d.getMinutes();
 
 		function getHours() {
 			var r = h;
@@ -10,7 +9,6 @@ var fuzzyTime = {
 			}
 			if (r > 11) {
 				r = r - 12;
-				p = 'pm';
 			}
 			return r;
 		}
@@ -18,10 +16,6 @@ var fuzzyTime = {
 		function getMinutes() {
 			var r = Math.round(m / 5) * 5
 			return r === 60 ? 0 : r;
-		}
-
-		function getPeriod() {
-			return p;
 		}
 
 		function isNight() {
@@ -42,15 +36,12 @@ var fuzzyTime = {
 			}
 		}
 
-		function isEqual(t) {
-			return t.toString() === toString();
+		function isStale() {
+			var now = new Date();
+			return now.getMinutes() != m || now.getHours() != h;
 		}
 
 		function toString() {
-			return pad(getHours()) + ':' + pad(getMinutes()) + 'ff' + getFuzzyFactor() + ' ' + getPeriod();
-		}
-
-		function to24HourString() {
 			return pad(h) + ':' + pad(m);
 		}
 
@@ -59,14 +50,12 @@ var fuzzyTime = {
 		}
 
 		return {
-			getPeriod: getPeriod,
 			getHours: getHours,
 			getMinutes: getMinutes,
 			getFuzzyFactor: getFuzzyFactor,
 			isNight: isNight,
-			isEqual: isEqual,
 			toString: toString,
-			to24HourString: to24HourString
+			isStale: isStale,
 		};
 	}
 };
@@ -114,7 +103,7 @@ var clock = {
 
 		var time, fontSize, content, screens = [doc.createElement('div'), doc.createElement('div')], clientHeight;
 
-		refresh(time);
+		refresh();
 
 		doc.body.appendChild(screens[0]);
 		doc.body.appendChild(screens[1]);
@@ -138,27 +127,15 @@ var clock = {
 			return elements[index];
 		}
 
-		function isNight() {
-			return time.isNight();
-		}
-
-		function setTime(t) {
-			time = fuzzyTime.createFuzzyTime(t);
-		}
-
-		function isStale(t) {
-			return !time.isEqual(t || fuzzyTime.createFuzzyTime());
-		}
-
-		function refreshContent(t) {
-			setTime(t);
-			var template, sc = timeInWords.SPECIAL_CASES[time.to24HourString()];
+		function refreshContent() {
+			time = fuzzyTime.createFuzzyTime();
+			var sc = timeInWords.SPECIAL_CASES[time.toString()];
 
 			if (sc) {
 				return content = sc;
 			}
 
-			template = timeInWords[time.getMinutes() ? 'template' : 'onTheHourTemplate'];
+			var template = timeInWords[time.getMinutes() ? 'template' : 'onTheHourTemplate'];
 
 			content = template.replace(/\{\{\s*(\w+)\s*\}\}/g, function (m, m1) {
 				switch (m1) {
@@ -183,7 +160,7 @@ var clock = {
 			s0.className = 'screen';
 			s1.className = 'screen previous';
 			screens.reverse();
-			doc.body.className = isNight() ? 'night' : 'day';
+			doc.body.className = time.isNight() ? 'night' : 'day';
 		}
 
 		function setFontSize() {
@@ -202,7 +179,7 @@ var clock = {
 		function redraw() {
 			var redraw = false;
 
-			if (isStale()) {
+			if (time.isStale()) {
 				refreshContent();
 				redraw = true;
 			}
@@ -212,6 +189,7 @@ var clock = {
 				redraw = true;
 			}
 
+			console.log("redraw", redraw);
 			if (redraw) {
 				draw();
 			}
