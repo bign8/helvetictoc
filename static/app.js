@@ -2,6 +2,8 @@ function FuzzyTime(d) {
 	d = d || new Date(); // For testing
 	this.h = d.getHours();
 	this.m = d.getMinutes();
+	this.hour = (this.h + (this.m > 32)) % 12; // round to next hour if > 32 mins
+	this.min = (Math.round(this.m / 5) * 5) % 60; // break int 5 min blocks
 }
 
 FuzzyTime.prototype.isNight = function() {
@@ -24,16 +26,6 @@ FuzzyTime.prototype.getFuzzyFactor = function() {
 		default:
 			return 0;
 	}
-};
-
-FuzzyTime.prototype.getHours = function() {
-	var r = this.h;
-	if (this.m > 32) r++;
-	return r % 12;
-};
-
-FuzzyTime.prototype.getMinutes = function() {
-	return (Math.round(this.m / 5) * 5) % 60;
 };
 
 FuzzyTime.prototype.toString = (function() {
@@ -63,21 +55,19 @@ FuzzyTime.prototype.toString = (function() {
 			'12:0': 'It’s<br>noon.'
 		};
 	return function() {
-		var sc = special[this.h + ':' + this.m];
+		var sc = special[this.h + ':' + this.m], that = this;
 		if (sc) return sc;
-
-		var that = this, template = this.getMinutes() ? "It’s {{p}}<br>{{m}}<br>{{h}}." : "It’s {{p}}<br>{{h}} o’clock.";
-		return template.replace(/\{\{\s*(\w+)\s*\}\}/g, function (m, m1) {
+		return "It’s {{p}}<br>{{m}}<br>{{h}}.".replace(/\{\{\s*(\w+)\s*\}\}/g, function (m, m1) {
 			switch (m1) {
 				case 'p':
 					var pre = prepositions[that.getFuzzyFactor()];
 					return pre[Math.floor(Math.random() * pre.length)];
 				case 'm':
-					return mins[that.getMinutes()];
+					return mins[that.min] || '';
 				case 'h':
-					return hours[that.getHours()];
+					return hours[that.hour];
 			}
-		});
+		}).replace("<br><br>", "<br>");
 	};
 })();
 
