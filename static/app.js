@@ -1,63 +1,54 @@
-var fuzzyTime = {
-	createFuzzyTime: function () {
-		var d = new Date(), h = d.getHours(), m = d.getMinutes();
+function FuzzyTime() {
+	var d = new Date();
+	this.h = d.getHours();
+	this.m = d.getMinutes();
+}
 
-		function getHours() {
-			var r = h;
-			if (m > 32) {
-				r = r === 23 ? 0 : r + 1;
-			}
-			if (r > 11) {
-				r = r - 12;
-			}
-			return r;
-		}
+FuzzyTime.prototype.isNight = function() {
+	return this.h >= 18 || this.h < 6;
+};
 
-		function getMinutes() {
-			var r = Math.round(m / 5) * 5
-			return r === 60 ? 0 : r;
-		}
+FuzzyTime.prototype.toString = function() {
+	return pad(this.h) + ':' + pad(this.m); // TODO: full string
+};
 
-		function isNight() {
-			return h >= 18 || h < 6;
-		}
+function pad(i) {
+	return (i > 9 ? '' : '0') + i;
+}
 
-		function getFuzzyFactor() {
-			var ff = m % 5;
-			switch (ff) {
-				case 1:
-				case 2:
-					return 1;
-				case 3:
-				case 4:
-					return -1;
-				default:
-					return 0;
-			}
-		}
+FuzzyTime.prototype.isStale = function() {
+	var now = new Date();
+	return now.getMinutes() != this.m || now.getHours() != this.h;
+};
 
-		function isStale() {
-			var now = new Date();
-			return now.getMinutes() != m || now.getHours() != h;
-		}
-
-		function toString() {
-			return pad(h) + ':' + pad(m);
-		}
-
-		function pad(i) {
-			return (i > 9 ? '' : '0') + i;
-		}
-
-		return {
-			getHours: getHours,
-			getMinutes: getMinutes,
-			getFuzzyFactor: getFuzzyFactor,
-			isNight: isNight,
-			toString: toString,
-			isStale: isStale,
-		};
+FuzzyTime.prototype.getFuzzyFactor = function() {
+	var ff = this.m % 5;
+	switch (ff) {
+		case 1:
+		case 2:
+			return 1;
+		case 3:
+		case 4:
+			return -1;
+		default:
+			return 0;
 	}
+};
+
+FuzzyTime.prototype.getHours = function() {
+	var r = this.h;
+	if (this.m > 32) {
+		r = r === 23 ? 0 : r + 1;
+	}
+	if (r > 11) {
+		r = r - 12;
+	}
+	return r;
+};
+
+FuzzyTime.prototype.getMinutes = function() {
+	var r = Math.round(this.m / 5) * 5
+	return r === 60 ? 0 : r;
 };
 
 var timeInWords = {
@@ -108,14 +99,6 @@ var clock = {
 		doc.body.appendChild(screens[0]);
 		doc.body.appendChild(screens[1]);
 
-		function getMinutesInWords() {
-			return timeInWords.MINUTES[time.getMinutes()];
-		}
-
-		function getHoursInWords() {
-			return timeInWords.HOURS[time.getHours()];
-		}
-
 		function getPreposition() {
 			var ff = time.getFuzzyFactor(),
 				p = pickOne(timeInWords.PREPOSITIONS[ff]);
@@ -128,7 +111,7 @@ var clock = {
 		}
 
 		function refreshContent() {
-			time = fuzzyTime.createFuzzyTime();
+			time = new FuzzyTime();//fuzzyTime.createFuzzyTime();
 			var sc = timeInWords.SPECIAL_CASES[time.toString()];
 
 			if (sc) {
@@ -142,9 +125,9 @@ var clock = {
 					case 'p':
 						return getPreposition();
 					case 'm':
-						return getMinutesInWords();
+						return timeInWords.MINUTES[time.getMinutes()];
 					case 'h':
-						return getHoursInWords();
+						return timeInWords.HOURS[time.getHours()];
 				}
 			});
 		}
