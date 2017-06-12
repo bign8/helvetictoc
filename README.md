@@ -8,8 +8,7 @@ helvetictoc is [my](https://github.com/tobie) entry to the [10K apart contest](h
 
 It displays humanized time set in Helvetica.
 
-Technical details:
------------------
+## Technical details:
 
 helvetictoc doesn't rely on any external scripts.
 
