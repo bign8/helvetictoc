@@ -1,0 +1,7 @@
+#
+# robots.txt:
+# Robots ACL file for time.bign8.info.
+#
+
+User-agent: *
+Allow: /
