@@ -1,0 +1,6 @@
+pipeline:
+  docker:
+    image: plugins/docker
+    repo: bign8/time
+    tags: latest
+    secrets: [ docker_username, docker_password ]
