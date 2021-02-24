@@ -1,7 +1,28 @@
 package main
 
-import "net/http"
+import (
+	"embed"
+	"io/fs"
+	"log"
+	"net/http"
+	"os"
+)
+
+//go:embed static
+var site embed.FS
 
 func main() {
-	http.ListenAndServe(":3333", http.FileServer(http.Dir("static")))
+	root, err := fs.Sub(site, "static")
+	if err != nil {
+		log.Fatal(err)
+	}
+	p := ":" + os.Getenv("PORT")
+	if p == ":" {
+		log.Fatal("Missing PORT variable")
+	}
+	log.Printf("Serving on %s", p)
+	http.Handle("/", http.FileServer(http.FS(root)))
+	if err := http.ListenAndServe(p, nil); err != nil {
+		log.Fatal(err)
+	}
 }
